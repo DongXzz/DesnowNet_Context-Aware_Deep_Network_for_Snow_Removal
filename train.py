@@ -40,7 +40,7 @@ if __name__ == '__main__':
         '-iter',
         '--iterations',
         type=int,
-        default=2000
+        default=100000
     )
 
     argparser.add_argument(
@@ -196,7 +196,8 @@ if __name__ == '__main__':
                 }
                 torch.save(state, os.path.join(args.dir, 'checkpoints_ite{}.pth'.format(iteration)))
 
-            print("Iteration: %d  Loss: %f" % (iteration, loss.data))
+            if not iteration % 400:
+                print("Iteration: %d  Loss: %f" % (iteration, sum(loss_window)/len(loss_window)))
             if iteration >= args.iterations:
                 break
 
