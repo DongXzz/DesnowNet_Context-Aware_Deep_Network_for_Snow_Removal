@@ -67,9 +67,9 @@ if __name__ == '__main__':
 
     # read the image
     toTensor = transforms.ToTensor()
-    img_data = Image.open("../Snow100k/Snow100K-testset/test/Snow100K-L/mask/beautiful_smile_00003.jpg").convert('RGB')
+    img_data = Image.open("../Snow100k/Snow100K-testset/test/Snow100K-L/gt/beautiful_smile_00003.jpg").convert('RGB')
     mask_data = Image.open("../Snow100k/Snow100K-testset/test/Snow100K-L/mask/beautiful_smile_00003.jpg").convert('L')
-    gt_data = Image.open("../Snow100k/Snow100K-testset/test/Snow100K-L/mask/beautiful_smile_00003.jpg")
+    gt_data = Image.open("../Snow100k/Snow100K-testset/test/Snow100K-L/gt/beautiful_smile_00003.jpg")
 
     img_tensor = toTensor(img_data).unsqueeze(0).to(device=args.device)
     mask_tensor = toTensor(mask_data).unsqueeze(0).to(device=args.device)
