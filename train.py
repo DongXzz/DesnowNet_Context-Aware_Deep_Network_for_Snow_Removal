@@ -197,7 +197,7 @@ if __name__ == '__main__':
                 torch.save(state, os.path.join(args.dir, 'checkpoints_ite{}.pth'.format(iteration)))
 
             if not iteration % 400:
-                print("Iteration: %d  Loss: %f" % (iteration, sum(loss_window)/len(loss_window)))
+                print("Iteration: %d  Loss: %f Mean Loss" % (iteration, sum(loss_window[max(0, iteration-400):])/400, sum(loss_window)/len(loss_window)))
             if iteration >= args.iterations:
                 break
 

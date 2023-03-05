@@ -13,7 +13,10 @@ class Pyramid_out(nn.Module):
             # change to conv(1,5) and conv(5,1)
             block.append(nn.Conv2d(in_channel, depth, 2 * i + 1, 1, padding=i))
         self.conv_module = nn.ModuleList(block)
-        self.activation = nn.PReLU(num_parameters=depth)
+        if self.mode == 'maxout':
+            self.activation = nn.PReLU(num_parameters=depth)
+        else:
+            self.activation = None
 
     def forward(self, f):
         for i, module in enumerate(self.conv_module):
@@ -22,7 +25,7 @@ class Pyramid_out(nn.Module):
             else:
                 temp = module(f).unsqueeze(0)
                 conv_result = torch.cat([conv_result, temp], dim=0)
-        if self.mode == 'max_out':
+        if self.mode == 'maxout':
             result_, _ = torch.max(conv_result, dim=0)
         else:
             result_ = torch.sum(conv_result, dim=0)
@@ -79,10 +82,10 @@ class R_t(nn.Module):
 
 class TR(nn.Module):
     # translucency recovery(TR) module
-    def __init__(self, input_channel=3, beta=4, gamma=4, factor=1, dp_attn=False, use_SE=False):
+    def __init__(self, input_channel=3, beta=4, gamma=4, dp_attn=False, use_SE=False):
         super(TR, self).__init__()
-        self.D_t = Descriptor(input_channel=input_channel, gamma=gamma, factor=factor, dp_attn=dp_attn, use_SE=use_SE)
-        self.R_t = R_t(480, beta)
+        self.D_t = Descriptor(input_channel=input_channel, gamma=gamma, dp_attn=dp_attn, use_SE=use_SE)
+        self.R_t = R_t(385, beta)
 
     def forward(self, x, **kwargs):
         f_t = self.D_t(x)

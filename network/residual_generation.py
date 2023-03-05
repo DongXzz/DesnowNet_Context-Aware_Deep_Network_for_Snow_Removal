@@ -7,7 +7,7 @@ class RG(nn.Module):
     def __init__(self, input_channel=7, beta=4, gamma=4):
         super(RG, self).__init__()
         self.D_r = Descriptor(input_channel, gamma)
-        self.R_r = Pyramid_out(480, 3, beta, 'sum')
+        self.R_r = Pyramid_out(385, 3, beta, 'sum')
 
     def forward(self, f_c):
         f_r = self.D_r(f_c)

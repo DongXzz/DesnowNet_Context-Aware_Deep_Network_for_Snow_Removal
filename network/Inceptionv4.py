@@ -54,10 +54,10 @@ class BasicConv2d(nn.Module):
 
 class Mixed_3a(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Mixed_3a, self).__init__()
         self.maxpool = nn.MaxPool2d(3, stride=1, padding=1)
-        self.conv = BasicConv2d(64//factor, 96//factor, kernel_size=3, stride=1, padding=1)
+        self.conv = BasicConv2d(32, 48, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
         x0 = self.maxpool(x)
@@ -68,19 +68,19 @@ class Mixed_3a(nn.Module):
 
 class Mixed_4a(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Mixed_4a, self).__init__()
 
         self.branch0 = nn.Sequential(
-            BasicConv2d(160//factor, 64//factor, kernel_size=1, stride=1),
-            BasicConv2d(64//factor, 96//factor, kernel_size=3, stride=1, padding=1)
+            BasicConv2d(80, 32, kernel_size=1, stride=1),
+            BasicConv2d(32, 48, kernel_size=3, stride=1, padding=1)
         )
 
         self.branch1 = nn.Sequential(
-            BasicConv2d(160//factor, 64//factor, kernel_size=1, stride=1),
-            BasicConv2d(64//factor, 64//factor, kernel_size=(1,7), stride=1, padding=(0,3)),
-            BasicConv2d(64//factor, 64//factor, kernel_size=(7,1), stride=1, padding=(3,0)),
-            BasicConv2d(64//factor, 96//factor, kernel_size=(3,3), stride=1, padding=(1,1))
+            BasicConv2d(80, 32, kernel_size=1, stride=1),
+            BasicConv2d(32, 32, kernel_size=(1,7), stride=1, padding=(0,3)),
+            BasicConv2d(32, 32, kernel_size=(7,1), stride=1, padding=(3,0)),
+            BasicConv2d(32, 48, kernel_size=(3,3), stride=1, padding=(1,1))
         )
 
     def forward(self, x):
@@ -92,9 +92,9 @@ class Mixed_4a(nn.Module):
 
 class Mixed_5a(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Mixed_5a, self).__init__()
-        self.conv = BasicConv2d(192//factor, 192//factor, kernel_size=3, stride=1, padding=1)
+        self.conv = BasicConv2d(96, 96, kernel_size=3, stride=1, padding=1)
         self.maxpool = nn.MaxPool2d(3, stride=1, padding=1)
 
     def forward(self, x):
@@ -106,24 +106,24 @@ class Mixed_5a(nn.Module):
 
 class Inception_A(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Inception_A, self).__init__()
-        self.branch0 = BasicConv2d(384//factor, 96//factor, kernel_size=1, stride=1)
+        self.branch0 = BasicConv2d(192, 48, kernel_size=1, stride=1)
 
         self.branch1 = nn.Sequential(
-            BasicConv2d(384//factor, 64//factor, kernel_size=1, stride=1),
-            BasicConv2d(64//factor, 96//factor, kernel_size=3, stride=1, padding=1)
+            BasicConv2d(192, 32, kernel_size=1, stride=1),
+            BasicConv2d(32, 48, kernel_size=3, stride=1, padding=1)
         )
 
         self.branch2 = nn.Sequential(
-            BasicConv2d(384//factor, 64//factor, kernel_size=1, stride=1),
-            BasicConv2d(64//factor, 96//factor, kernel_size=3, stride=1, padding=1),
-            BasicConv2d(96//factor, 96//factor, kernel_size=3, stride=1, padding=1)
+            BasicConv2d(192, 32, kernel_size=1, stride=1),
+            BasicConv2d(32, 48, kernel_size=3, stride=1, padding=1),
+            BasicConv2d(48, 48, kernel_size=3, stride=1, padding=1)
         )
 
         self.branch3 = nn.Sequential(
             nn.AvgPool2d(3, stride=1, padding=1, count_include_pad=False),
-            BasicConv2d(384//factor, 96//factor, kernel_size=1, stride=1)
+            BasicConv2d(192, 48, kernel_size=1, stride=1)
         )
 
     def forward(self, x):
@@ -137,14 +137,14 @@ class Inception_A(nn.Module):
 
 class Reduction_A(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Reduction_A, self).__init__()
-        self.branch0 = BasicConv2d(384//factor, 384//factor, kernel_size=3, stride=1, padding=1)
+        self.branch0 = BasicConv2d(192, 192, kernel_size=3, stride=1, padding=1)
 
         self.branch1 = nn.Sequential(
-            BasicConv2d(384//factor, 192//factor, kernel_size=1, stride=1),
-            BasicConv2d(192//factor, 224//factor, kernel_size=3, stride=1, padding=1),
-            BasicConv2d(224//factor, 256//factor, kernel_size=3, stride=1, padding=1)
+            BasicConv2d(192, 96, kernel_size=1, stride=1),
+            BasicConv2d(96, 112, kernel_size=3, stride=1, padding=1),
+            BasicConv2d(112, 128, kernel_size=3, stride=1, padding=1)
         )
 
         self.branch2 = nn.MaxPool2d(3, stride=1, padding=1)
@@ -159,27 +159,27 @@ class Reduction_A(nn.Module):
 
 class Inception_B(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Inception_B, self).__init__()
-        self.branch0 = BasicConv2d(1024//factor, 384//factor, kernel_size=1, stride=1)
+        self.branch0 = BasicConv2d(512, 192, kernel_size=1, stride=1)
 
         self.branch1 = nn.Sequential(
-            BasicConv2d(1024//factor, 192//factor, kernel_size=1, stride=1),
-            BasicConv2d(192//factor, 224//factor, kernel_size=(1,7), stride=1, padding=(0,3)),
-            BasicConv2d(224//factor, 256//factor, kernel_size=(7,1), stride=1, padding=(3,0))
+            BasicConv2d(512, 96, kernel_size=1, stride=1),
+            BasicConv2d(96, 112, kernel_size=(1,7), stride=1, padding=(0,3)),
+            BasicConv2d(112, 128, kernel_size=(7,1), stride=1, padding=(3,0))
         )
 
         self.branch2 = nn.Sequential(
-            BasicConv2d(1024//factor, 192//factor, kernel_size=1, stride=1),
-            BasicConv2d(192//factor, 192//factor, kernel_size=(7,1), stride=1, padding=(3,0)),
-            BasicConv2d(192//factor, 224//factor, kernel_size=(1,7), stride=1, padding=(0,3)),
-            BasicConv2d(224//factor, 224//factor, kernel_size=(7,1), stride=1, padding=(3,0)),
-            BasicConv2d(224//factor, 256//factor, kernel_size=(1,7), stride=1, padding=(0,3))
+            BasicConv2d(512, 96, kernel_size=1, stride=1),
+            BasicConv2d(96, 96, kernel_size=(7,1), stride=1, padding=(3,0)),
+            BasicConv2d(96, 112, kernel_size=(1,7), stride=1, padding=(0,3)),
+            BasicConv2d(112, 112, kernel_size=(7,1), stride=1, padding=(3,0)),
+            BasicConv2d(112, 128, kernel_size=(1,7), stride=1, padding=(0,3))
         )
 
         self.branch3 = nn.Sequential(
             nn.AvgPool2d(3, stride=1, padding=1, count_include_pad=False),
-            BasicConv2d(1024//factor, 128//factor, kernel_size=1, stride=1)
+            BasicConv2d(512, 64, kernel_size=1, stride=1)
         )
 
     def forward(self, x):
@@ -193,19 +193,19 @@ class Inception_B(nn.Module):
 
 class Reduction_B(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Reduction_B, self).__init__()
 
         self.branch0 = nn.Sequential(
-            BasicConv2d(1024//factor, 192//factor, kernel_size=1, stride=1),
-            BasicConv2d(192//factor, 192//factor, kernel_size=3, stride=1, padding=1)
+            BasicConv2d(512, 96, kernel_size=1, stride=1),
+            BasicConv2d(96, 96, kernel_size=3, stride=1, padding=1)
         )
 
         self.branch1 = nn.Sequential(
-            BasicConv2d(1024//factor, 256//factor, kernel_size=1, stride=1),
-            BasicConv2d(256//factor, 256//factor, kernel_size=(1,7), stride=1, padding=(0,3)),
-            BasicConv2d(256//factor, 320//factor, kernel_size=(7,1), stride=1, padding=(3,0)),
-            BasicConv2d(320//factor, 320//factor, kernel_size=3, stride=1, padding=1)
+            BasicConv2d(512, 128, kernel_size=1, stride=1),
+            BasicConv2d(128, 128, kernel_size=(1,7), stride=1, padding=(0,3)),
+            BasicConv2d(128, 160, kernel_size=(7,1), stride=1, padding=(3,0)),
+            BasicConv2d(160, 160, kernel_size=3, stride=1, padding=1)
         )
 
         self.branch2 = nn.MaxPool2d(3, stride=1, padding=1)
@@ -220,24 +220,24 @@ class Reduction_B(nn.Module):
 
 class Inception_C(nn.Module):
 
-    def __init__(self, factor):
+    def __init__(self):
         super(Inception_C, self).__init__()
 
-        self.branch0 = BasicConv2d(1536//factor, 256//factor, kernel_size=1, stride=1)
+        self.branch0 = BasicConv2d(768, 128, kernel_size=1, stride=1)
 
-        self.branch1_0 = BasicConv2d(1536//factor, 384//factor, kernel_size=1, stride=1)
-        self.branch1_1a = BasicConv2d(384//factor, 256//factor, kernel_size=(1,3), stride=1, padding=(0,1))
-        self.branch1_1b = BasicConv2d(384//factor, 256//factor, kernel_size=(3,1), stride=1, padding=(1,0))
+        self.branch1_0 = BasicConv2d(768, 192, kernel_size=1, stride=1)
+        self.branch1_1a = BasicConv2d(192, 128, kernel_size=(1,3), stride=1, padding=(0,1))
+        self.branch1_1b = BasicConv2d(192, 128, kernel_size=(3,1), stride=1, padding=(1,0))
 
-        self.branch2_0 = BasicConv2d(1536//factor, 384//factor, kernel_size=1, stride=1)
-        self.branch2_1 = BasicConv2d(384//factor, 448//factor, kernel_size=(3,1), stride=1, padding=(1,0))
-        self.branch2_2 = BasicConv2d(448//factor, 512//factor, kernel_size=(1,3), stride=1, padding=(0,1))
-        self.branch2_3a = BasicConv2d(512//factor, 256//factor, kernel_size=(1,3), stride=1, padding=(0,1))
-        self.branch2_3b = BasicConv2d(512//factor, 256//factor, kernel_size=(3,1), stride=1, padding=(1,0))
+        self.branch2_0 = BasicConv2d(768, 192, kernel_size=1, stride=1)
+        self.branch2_1 = BasicConv2d(192, 224, kernel_size=(3,1), stride=1, padding=(1,0))
+        self.branch2_2 = BasicConv2d(224, 256, kernel_size=(1,3), stride=1, padding=(0,1))
+        self.branch2_3a = BasicConv2d(256, 128, kernel_size=(1,3), stride=1, padding=(0,1))
+        self.branch2_3b = BasicConv2d(256, 128, kernel_size=(3,1), stride=1, padding=(1,0))
 
         self.branch3 = nn.Sequential(
             nn.AvgPool2d(3, stride=1, padding=1, count_include_pad=False),
-            BasicConv2d(1536//factor, 256//factor, kernel_size=1, stride=1)
+            BasicConv2d(768, 128, kernel_size=1, stride=1)
         )
 
     def forward(self, x):
@@ -263,7 +263,7 @@ class Inception_C(nn.Module):
 
 class InceptionV4(nn.Module):
 
-    def __init__(self, input_channel, factor=1, use_SE=False):
+    def __init__(self, input_channel, use_SE=False):
         super(InceptionV4, self).__init__()
         # # Special attributs
         # self.input_space = None
@@ -305,28 +305,28 @@ class InceptionV4(nn.Module):
             )
         else:
             self.features = nn.Sequential(
-                # change channel to 32
-                BasicConv2d(input_channel, 32//factor, kernel_size=3, stride=1, padding=1),
-                BasicConv2d(32//factor, 32//factor, kernel_size=3, stride=1, padding=1),
-                BasicConv2d(32//factor, 64//factor, kernel_size=3, stride=1, padding=1),
-                Mixed_3a(factor),
-                Mixed_4a(factor),
-                Mixed_5a(factor),
-                Inception_A(factor),
-                Inception_A(factor),
-                Inception_A(factor),
-                Inception_A(factor),
-                Reduction_A(factor), # Mixed_6a
-                Inception_B(factor),
-                Inception_B(factor),
-                Inception_B(factor),
-                Inception_B(factor),
-                Inception_B(factor),
-                Inception_B(factor),
-                Reduction_B(factor), # Mixed_7a
-                Inception_C(factor),
-                Inception_C(factor),
-                Inception_C(factor)
+                BasicConv2d(input_channel, 16, kernel_size=3, stride=1, padding=1),
+                BasicConv2d(16, 16, kernel_size=3, stride=1, padding=1),
+                BasicConv2d(16, 32, kernel_size=3, stride=1, padding=1),
+                Mixed_3a(),
+                Mixed_4a(),
+                Mixed_5a(),
+                Inception_A(),
+                Inception_A(),
+                Inception_A(),
+                Inception_A(),
+                Reduction_A(), # Mixed_6a
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Reduction_B(), # Mixed_7a
+                Inception_C(),
+                Inception_C(),
+                Inception_C()
             )
         # self.last_linear = nn.Linear(1536, num_classes)
 
