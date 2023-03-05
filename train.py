@@ -40,7 +40,7 @@ if __name__ == '__main__':
         '-iter',
         '--iterations',
         type=int,
-        default=100000
+        default=20000
     )
 
     argparser.add_argument(
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     gt_root = os.path.join(args.root, 'gt')
     mask_root = os.path.join(args.root, 'mask')
     synthetic_root = os.path.join(args.root, 'synthetic')
-    dataset = snow_dataset(gt_root, mask_root, synthetic_root)
+    dataset = snow_dataset(gt_root, mask_root, synthetic_root, is_tiny=True)
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                                               shuffle=True,
                                               num_workers=6,

@@ -11,6 +11,8 @@ from network.DesnowNet import DesnowNet
 
 from metrics import psnr, ssim
 
+from tqdm import tqdm
+
 sys.path.append('./network')
 
 if __name__ == '__main__':
@@ -86,7 +88,7 @@ if __name__ == '__main__':
         raise RuntimeError('No checkpoint in logs directory')
 
     net.eval()
-    img_num = 2000
+    img_num = 200
     n = img_num/bs
     with torch.no_grad():
         psnr_sum = 0
@@ -97,7 +99,7 @@ if __name__ == '__main__':
         ssim_sum_2 = 0
         psnr_sum_3 = 0
         ssim_sum_3 = 0
-        for index, data in enumerate(data_loader):
+        for index, data in tqdm(enumerate(data_loader)):
             gt, mask, synthetic = data
             gt, mask, synthetic = gt.to(device=args.device), mask.to(device=args.device), \
                                   synthetic.to(device=args.device)

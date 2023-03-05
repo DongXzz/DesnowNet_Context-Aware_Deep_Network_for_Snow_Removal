@@ -72,17 +72,17 @@ class R_t(nn.Module):
         elif 'mask' in kwargs.keys():
             f_c = torch.cat([y_, z, a], dim=1)
         else:
-            # here the formula is not correct, f_c should be y_ * ||z|| * a
+            # Try *z to yeild a opaque snow
             f_c = torch.cat([y_, z, a], dim=1)
         return y_, f_c, z_hat, a_hat
     
 
 class TR(nn.Module):
     # translucency recovery(TR) module
-    def __init__(self, input_channel=3, beta=4, gamma=4, dp_attn=False, use_SE=False):
+    def __init__(self, input_channel=3, beta=4, gamma=4, factor=1, dp_attn=False, use_SE=False):
         super(TR, self).__init__()
-        self.D_t = Descriptor(input_channel, gamma, dp_attn=dp_attn, use_SE=use_SE)
-        self.R_t = R_t(385, beta)
+        self.D_t = Descriptor(input_channel=input_channel, gamma=gamma, factor=factor, dp_attn=dp_attn, use_SE=use_SE)
+        self.R_t = R_t(480, beta)
 
     def forward(self, x, **kwargs):
         f_t = self.D_t(x)

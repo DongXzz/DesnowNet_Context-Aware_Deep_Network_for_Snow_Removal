@@ -5,7 +5,7 @@ from Inceptionv4 import InceptionV4
 
 class DP(nn.Module):
     # dilation pyramid
-    def __init__(self, in_channel=768, depth=77, gamma=4):
+    def __init__(self, in_channel=1536, depth=96, gamma=4):
         super(DP, self).__init__()
         self.gamma = gamma
         block = []
@@ -51,13 +51,13 @@ class DP_attn(nn.Module):
         return attn_output
 
 class Descriptor(nn.Module):
-    def __init__(self, input_channel=3, gamma=4, dp_attn=False, use_SE=False):
+    def __init__(self, input_channel=3, factor=1, gamma=4, dp_attn=False, use_SE=False):
         super(Descriptor, self).__init__()
-        self.backbone = InceptionV4(input_channel, use_SE=use_SE)
+        self.backbone = InceptionV4(input_channel, factor=factor, use_SE=use_SE)
         if dp_attn:
             self.DP = DP_attn()
         else:
-            self.DP = DP(gamma=gamma)
+            self.DP = DP(in_channel=1536//factor, gamma=gamma)
 
     def forward(self, img):
         feature = self.backbone(img)

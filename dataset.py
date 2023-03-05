@@ -18,7 +18,7 @@ class snow_dataset(data.Dataset):
         self.imgs_list = os.listdir(gt_root)
         self.imgs_list.sort()
         if is_tiny:
-            self.imgs_list = self.imgs_list[:5000]
+            self.imgs_list = self.imgs_list[:2000]
 
     def __getitem__(self, index):
         img_name = self.imgs_list[index]
