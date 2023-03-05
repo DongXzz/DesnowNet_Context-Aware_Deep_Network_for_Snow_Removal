@@ -263,7 +263,7 @@ class Inception_C(nn.Module):
 
 class InceptionV4(nn.Module):
 
-    def __init__(self, input_channel):
+    def __init__(self, input_channel, use_SE=False):
         super(InceptionV4, self).__init__()
         # # Special attributs
         # self.input_space = None
@@ -271,30 +271,64 @@ class InceptionV4(nn.Module):
         # self.mean = None
         # self.std = None
         # Modules
-        self.features = nn.Sequential(
-            BasicConv2d(input_channel, 16, kernel_size=3, stride=1, padding=1),
-            BasicConv2d(16, 16, kernel_size=3, stride=1, padding=1),
-            BasicConv2d(16, 32, kernel_size=3, stride=1, padding=1),
-            Mixed_3a(),
-            Mixed_4a(),
-            Mixed_5a(),
-            Inception_A(),
-            Inception_A(),
-            Inception_A(),
-            Inception_A(),
-            Reduction_A(), # Mixed_6a
-            Inception_B(),
-            Inception_B(),
-            Inception_B(),
-            Inception_B(),
-            Inception_B(),
-            Inception_B(),
-            Inception_B(),
-            Reduction_B(), # Mixed_7a
-            Inception_C(),
-            Inception_C(),
-            Inception_C()
-        )
+        if use_SE:
+            self.features = nn.Sequential(
+                # change channel to 32
+                BasicConv2d(input_channel, 16, kernel_size=3, stride=1, padding=1),
+                BasicConv2d(16, 16, kernel_size=3, stride=1, padding=1),
+                BasicConv2d(16, 32, kernel_size=3, stride=1, padding=1),
+                Mixed_3a(),
+                Mixed_4a(),
+                Mixed_5a(),
+                Inception_A(),
+                Inception_A(),
+                Inception_A(),
+                Inception_A(),
+                Reduction_A(), # Mixed_6a
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Reduction_B(), # Mixed_7a
+                Inception_C(),
+                Inception_C(),
+                Inception_C()
+            )
+        else:
+            self.features = nn.Sequential(
+                # change channel to 32
+                BasicConv2d(input_channel, 16, kernel_size=3, stride=1, padding=1),
+                BasicConv2d(16, 16, kernel_size=3, stride=1, padding=1),
+                BasicConv2d(16, 32, kernel_size=3, stride=1, padding=1),
+                Mixed_3a(),
+                SELayer(80),
+                Mixed_4a(),
+                SELayer(96),
+                Mixed_5a(),
+                SELayer(192),
+                Inception_A(),
+                Inception_A(),
+                Inception_A(),
+                Inception_A(),
+                Reduction_A(), # Mixed_6a
+                SELayer(512),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Inception_B(),
+                Reduction_B(), # Mixed_7a
+                SELayer(768),
+                Inception_C(),
+                Inception_C(),
+                Inception_C(),
+                SELayer(768),
+            )
         # self.last_linear = nn.Linear(1536, num_classes)
 
     # def logits(self, features):
@@ -310,49 +344,19 @@ class InceptionV4(nn.Module):
         return x
 
 
-# def inceptionv4(num_classes=1000, pretrained='imagenet'):
-#     if pretrained:
-#         settings = pretrained_settings['inceptionv4'][pretrained]
-#         assert num_classes == settings['num_classes'], \
-#             "num_classes should be {}, but is {}".format(settings['num_classes'], num_classes)
-#
-#         # both 'imagenet'&'imagenet+background' are loaded from same parameters
-#         model = InceptionV4()
-#         model_dict = model_zoo.load_url(settings['url'])
-#         model.load_state_dict(model_zoo.load_url(settings['url']))
-#
-#         if pretrained == 'imagenet':
-#             new_last_linear = nn.Linear(1536, 1000)
-#             new_last_linear.weight.data = model.last_linear.weight.data[1:]
-#             new_last_linear.bias.data = model.last_linear.bias.data[1:]
-#             model.last_linear = new_last_linear
-#
-#         model.input_space = settings['input_space']
-#         model.input_size = settings['input_size']
-#         model.input_range = settings['input_range']
-#         model.mean = settings['mean']
-#         model.std = settings['std']
-#     else:
-#         model = InceptionV4(num_classes=num_classes)
-#     return model
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
 
-
-'''
-TEST
-Run this code with:
-```
-cd $HOME/pretrained-models.pytorch
-python -m pretrainedmodels.inceptionv4
-```
-'''
-# if __name__ == '__main__':
-#
-#     assert inceptionv4(num_classes=10, pretrained=None)
-#     print('success')
-#     assert inceptionv4(num_classes=1000, pretrained='imagenet')
-#     print('success')
-#     assert inceptionv4(num_classes=1001, pretrained='imagenet+background')
-#     print('success')
-#
-#     # fail
-#     assert inceptionv4(num_classes=1001, pretrained='imagenet')
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)

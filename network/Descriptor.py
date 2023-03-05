@@ -21,12 +21,43 @@ class DP(nn.Module):
                 output = torch.cat([output, block(feature)], dim=1)
         return output
 
+class DP_attn(nn.Module):
+    # dilation pyramid
+    def __init__(self, in_channel=768, out_channel=385, num_heads=5):
+        super(DP_attn, self).__init__()
+        self.num_heads = num_heads
+        self.query_conv = nn.Conv2d(in_channel, out_channel,
+                              kernel_size=1, stride=1,
+                              bias=False)
+        self.key_conv = nn.Conv2d(in_channel, out_channel,
+                              kernel_size=1, stride=1,
+                              bias=False)
+        self.value_conv = nn.Conv2d(in_channel, out_channel,
+                              kernel_size=1, stride=1,
+                              bias=False)
+        
+        self.multihead_attn = nn.MultiheadAttention(out_channel, num_heads)
+
+    def forward(self, feature):
+        n, c, w, h = feature.shape
+        query_ = self.query_conv(feature)
+        query = query_.view(n, -1, w*h).permute((2, 0, 1))
+        key_ = self.query_conv(feature)
+        key = key_.view(n, -1, w*h).permute((2, 0, 1))
+        value_ = self.query_conv(feature)
+        value = value_.view(n, -1, w*h).permute((2, 0, 1))
+        attn_output_, attn_output_weights = self.multihead_attn(query, key, value)
+        attn_output = attn_output_.permute((1, 2, 0)).view(n, -1, w, h)
+        return attn_output
 
 class Descriptor(nn.Module):
-    def __init__(self, input_channel=3, gamma=4):
+    def __init__(self, input_channel=3, gamma=4, dp_attn=False, use_SE=False):
         super(Descriptor, self).__init__()
-        self.backbone = InceptionV4(input_channel)
-        self.DP = DP(gamma=gamma)
+        self.backbone = InceptionV4(input_channel, use_SE=use_SE)
+        if dp_attn:
+            self.DP = DP_attn()
+        else:
+            self.DP = DP(gamma=gamma)
 
     def forward(self, img):
         feature = self.backbone(img)
