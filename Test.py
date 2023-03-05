@@ -68,8 +68,9 @@ if __name__ == '__main__':
     mask_root = os.path.join(args.root, 'mask')
     synthetic_root = os.path.join(args.root, 'synthetic')
     dataset = snow_dataset(gt_root, mask_root, synthetic_root)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=5,
-                                              shuffle=True,
+    bs = 1
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=bs,
+                                              shuffle=False,
                                               num_workers=12,
                                               pin_memory=True)
 
@@ -85,6 +86,8 @@ if __name__ == '__main__':
         raise RuntimeError('No checkpoint in logs directory')
 
     net.eval()
+    img_num = 2000
+    n = img_num/bs
     with torch.no_grad():
         psnr_sum = 0
         ssim_sum = 0
@@ -109,16 +112,16 @@ if __name__ == '__main__':
             ssim_sum_2 += ssim(y_, gt)
             psnr_sum_3 += psnr(z_hat, mask)
             ssim_sum_3 += ssim(z_hat, mask)
-            if index >= 400:
+            if index >= n:
                 break
-    psnr_mean = psnr_sum / 400
-    ssim_mean = ssim_sum / 400
-    psnr_mean_1 = psnr_sum_1 / 400
-    ssim_mean_1 = ssim_sum_1 / 400
-    psnr_mean_2 = psnr_sum_2 / 400
-    ssim_mean_2 = ssim_sum_2 / 400
-    psnr_mean_3 = psnr_sum_3 / 400
-    ssim_mean_3 = ssim_sum_3 / 400
+    psnr_mean = psnr_sum / n
+    ssim_mean = ssim_sum / n
+    psnr_mean_1 = psnr_sum_1 / n
+    ssim_mean_1 = ssim_sum_1 / n
+    psnr_mean_2 = psnr_sum_2 / n
+    ssim_mean_2 = ssim_sum_2 / n
+    psnr_mean_3 = psnr_sum_3 / n
+    ssim_mean_3 = ssim_sum_3 / n
     print('x  psnr:{:.4f},ssim:{:.4f}'.format(psnr_mean.data, ssim_mean.data))
     print('y_hat  psnr:{:.4f},ssim:{:.4f}'.format(psnr_mean_1.data, ssim_mean_1.data))
     print('y_  psnr:{:.4f},ssim:{:.4f}'.format(psnr_mean_2.data, ssim_mean_2.data))
