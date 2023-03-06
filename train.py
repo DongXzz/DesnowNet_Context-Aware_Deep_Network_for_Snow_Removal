@@ -46,7 +46,8 @@ if __name__ == '__main__':
     argparser.add_argument(
         '-lr',
         '--learning_rate',
-        type=flo0-8888
+        type=float,
+        default=3e-5
     )
 
     argparser.add_argument(
