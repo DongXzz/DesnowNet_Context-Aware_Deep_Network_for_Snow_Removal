@@ -99,14 +99,14 @@ class DesnowNet(nn.Module):
             self.TR = TR(input_channel, beta, gamma)
         elif mode == 'tr_dp_attn':
             self.TR = TR(input_channel, beta, gamma, dp_attn=True)
-        elif mode == 'tr_dp_attn_se':
-            self.TR = TR(input_channel, beta, gamma, dp_attn=True, use_SE=True)
+        elif mode == 'tr_se':
+            self.TR = TR(input_channel, beta, gamma, use_SE=True)
         # elif mode == 'new_descriptor':
         #     self.TR = TR_new(input_channel, beta, gamma)
         # elif mode == 'za':
         #     self.TR = TR_za(input_channel, beta, gamma)
         else:
-            raise ValueError("Invalid architectural mode")
+            self.TR = TR(input_channel, beta, gamma)
         self.RG = RG(beta=beta, gamma=gamma)
 
     def forward(self, x, **kwargs):

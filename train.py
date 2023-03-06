@@ -4,7 +4,7 @@ import argparse
 import torch
 import torch.nn.init as init
 import torch.optim as optim
-from loss import weight_decay_l2, lw_pyramid_loss
+from loss import weight_decay_l2, lw_pyramid_loss, VGG16FeatureExtractor, style_loss, preceptual_loss
 
 sys.path.append('./network')
 from dataset import snow_dataset
@@ -46,8 +46,7 @@ if __name__ == '__main__':
     argparser.add_argument(
         '-lr',
         '--learning_rate',
-        type=float,
-        default=3e-5
+        type=flo0-8888
     )
 
     argparser.add_argument(
@@ -100,7 +99,10 @@ if __name__ == '__main__':
 
     args = argparser.parse_args()
     net = DesnowNet(beta=args.beta, gamma=args.gamma, mode=args.mode).to(args.device)
-
+    if args.mode == 'perceptual_loss':
+        loss_net = VGG16FeatureExtractor().to(args.device)
+    else:
+        loss_net = None
     # initialization
     for name, param in net.named_parameters():
         if 'conv.weight' in name and 'bn' not in name and 'activation' not in name:
@@ -163,15 +165,26 @@ if __name__ == '__main__':
                                   synthetic.to(device=args.device)
             optimizer.zero_grad()
             y_hat, y_, z_hat, za = net(synthetic)
-            loss1 = lw_pyramid_loss(y_hat, gt)
-            if args.mode == 'za':
-                with torch.no_grad():
-                    za_gt = synthetic - (1-mask)*gt
-                loss2 = lw_pyramid_loss(za, za_gt)
+            
+            if loss_net:
+                y_hat_feats = loss_net(y_hat)
+                y_feats = loss_net(y_)
+                gt_feats = loss_net(gt)
+                loss_style = style_loss(gt_feats, y_hat_feats) + style_loss(gt_feats, y_feats)
+                loss_perceptual = preceptual_loss(gt_feats, y_hat_feats) + preceptual_loss(gt_feats, y_feats)
+                l2_loss = torch.mean((y_hat-gt)**2) + torch.mean((y_-gt)**2) + torch.mean((z_hat-mask)**2)
+                loss = 120 * loss_style + 0.05 * loss_perceptual + 6*l2_loss
             else:
-                loss2 = lw_pyramid_loss(y_, gt)
-            loss3 = lw_pyramid_loss(z_hat, mask)
-            loss = loss1 + loss2 + args.weight_mask * loss3
+                loss1 = lw_pyramid_loss(y_hat, gt)
+                if args.mode == 'za':
+                    with torch.no_grad():
+                        za_gt = synthetic - (1-mask)*gt
+                    loss2 = lw_pyramid_loss(za, za_gt)
+                else:
+                    loss2 = lw_pyramid_loss(y_, gt)
+                loss3 = lw_pyramid_loss(z_hat, mask)
+                loss = loss1 + loss2 + args.weight_mask * loss3
+
             # loss = loss3
             loss.backward()
             optimizer.step()
@@ -197,7 +210,7 @@ if __name__ == '__main__':
                 torch.save(state, os.path.join(args.dir, 'checkpoints_ite{}.pth'.format(iteration)))
 
             if not iteration % 400:
-                print("Iteration: %d  Loss: %f Mean Loss" % (iteration, sum(loss_window[max(0, iteration-400):])/400, sum(loss_window)/len(loss_window)))
+                print("Iteration: %d  Loss: %f Mean Loss: %f" % (iteration, sum(loss_window[max(0, iteration-400):])/400, sum(loss_window)/len(loss_window)))
             if iteration >= args.iterations:
                 break
 
