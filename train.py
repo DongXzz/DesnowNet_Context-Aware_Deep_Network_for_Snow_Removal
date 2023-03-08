@@ -173,8 +173,9 @@ if __name__ == '__main__':
                 gt_feats = loss_net(gt)
                 loss_style = style_loss(gt_feats, y_hat_feats) + style_loss(gt_feats, y_feats)
                 loss_perceptual = preceptual_loss(gt_feats, y_hat_feats) + preceptual_loss(gt_feats, y_feats)
-                l2_loss = torch.mean((y_hat-gt)**2) + torch.mean((y_-gt)**2) + torch.mean((z_hat-mask)**2)
-                loss = 120 * loss_style + 0.05 * loss_perceptual + 6*l2_loss
+                l2_loss = torch.mean((y_hat-gt)**2) + torch.mean((y_-gt)**2)
+                loss_z = torch.mean((z_hat-mask)**2)
+                loss = 120 * loss_style + 0.05 * loss_perceptual + 6*l2_loss + 18*loss_z
             else:
                 loss1 = lw_pyramid_loss(y_hat, gt)
                 if args.mode == 'za':

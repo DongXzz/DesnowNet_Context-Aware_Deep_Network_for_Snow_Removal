@@ -9,12 +9,13 @@ from PIL import Image
 
 class snow_dataset(data.Dataset):
 
-    def __init__(self, gt_root, mask_root, synthetic_root, is_crop=True, is_tiny=False):
+    def __init__(self, gt_root, mask_root, synthetic_root, is_crop=True, is_tiny=False, random_seed=1):
         self.gt_root = gt_root
         self.mask_root = mask_root
         self.synthetic_root = synthetic_root
         self.is_crop = is_crop
 
+        random.seed(random_seed)
         self.imgs_list = os.listdir(gt_root)
         self.imgs_list.sort()
         if is_tiny:

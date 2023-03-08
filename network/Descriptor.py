@@ -20,23 +20,27 @@ class DP(nn.Module):
             else:
                 output = torch.cat([output, block(feature)], dim=1)
         return output
+    
 
 class DP_attn(nn.Module):
     # dilation pyramid
-    def __init__(self, in_channel=768, out_channel=385, num_heads=5):
+    def __init__(self, in_channel=768, out_channel=385, num_heads=4, reduce_factor=2):
         super(DP_attn, self).__init__()
         self.num_heads = num_heads
-        self.query_conv = nn.Conv2d(in_channel, out_channel,
+        self.query_conv = nn.Conv2d(in_channel, in_channel//reduce_factor,
                               kernel_size=1, stride=1,
                               bias=False)
-        self.key_conv = nn.Conv2d(in_channel, out_channel,
+        self.key_conv = nn.Conv2d(in_channel, in_channel//reduce_factor,
                               kernel_size=1, stride=1,
                               bias=False)
-        self.value_conv = nn.Conv2d(in_channel, out_channel,
+        self.value_conv = nn.Conv2d(in_channel, in_channel//reduce_factor,
                               kernel_size=1, stride=1,
                               bias=False)
         
-        self.multihead_attn = nn.MultiheadAttention(out_channel, num_heads)
+        self.multihead_attn = nn.MultiheadAttention(in_channel//reduce_factor, num_heads)
+        self.out_conv = nn.Conv2d(in_channel//reduce_factor, out_channel,
+                              kernel_size=1, stride=1,
+                              bias=False)
 
     def forward(self, feature):
         n, c, w, h = feature.shape
@@ -48,7 +52,9 @@ class DP_attn(nn.Module):
         value = value_.view(n, -1, w*h).permute((2, 0, 1))
         attn_output_, attn_output_weights = self.multihead_attn(query, key, value)
         attn_output = attn_output_.permute((1, 2, 0)).view(n, -1, w, h)
-        return attn_output
+        out = self.out_conv(attn_output)
+        return out
+
 
 class Descriptor(nn.Module):
     def __init__(self, input_channel=3, gamma=4, dp_attn=False, use_SE=False):
